@@ -5,52 +5,87 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Console console = new Console();
-        console.start();
+        Scanner scanner = new Scanner(System.in);
+        console.start(scanner);
+        scanner.close();
     }
 }
 
 class Console {
-    public void start() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter a natural number:");
-        String input = scanner.nextLine();
-        boolean isValidInput = isValidInput(input);
-        if (!isValidInput) {
-            scanner.close();
-            return;
-        }
+    public void start(Scanner scanner) {
+        System.out.println("Welcome to Amazing Numbers!\n");
+        System.out.println("Supported requests:");
+        System.out.println("- enter a natural number to know its properties;");
+        System.out.println("- enter two natural numbers to obtain the properties of the list:");
+        System.out.println("  * the first parameter represents a starting number;");
+        System.out.println("  * the second parameter shows how many consecutive numbers are to be processed;");
+        System.out.println("- separate the parameters with one space;");
+        System.out.println("- enter 0 to exit.");
 
-        int n = Integer.parseInt(input);
-        NaturalNumber naturalNumber = new NaturalNumber(n);
-        if (naturalNumber.isEven()) {
-            System.out.println("This number is Even.");
-        } else {
-            System.out.println("This number is Odd.");
-        }
+        String input = "";
+        while (true) {      
+            System.out.print("\nEnter a request: ");      
+            input = scanner.nextLine();
+            System.out.println();
+            if (input.equals("0")) break;
 
-        if (naturalNumber.isBuzz()) {
-            System.out.println("It is a Buzz number.");
-            System.out.println("Explanation:");
-            if (naturalNumber.isDivisibleBy7() && naturalNumber.isEndWith7()) {
-                System.out.printf("%d is divisible by 7 and ends with 7.\n", naturalNumber.getValue());
-            } else if (naturalNumber.isDivisibleBy7()) {
-                System.out.printf("%d is divisible by 7.\n", naturalNumber.getValue());
-            } else {
-                System.out.printf("%d ends with 7.\n", naturalNumber.getValue());
+            String[] params = input.split(" ");
+            String param1 = params[0];
+            String param2 = params.length > 1 ? params[1] : null;
+            
+            if (!isValidInput(param1)) {
+                System.out.println("The first parameter should be a natural number or zero.");
+                continue;
             }
-        } else {
-            System.out.println("It is not a Buzz number.");
-            System.out.println("Explanation:");
-            System.out.printf("%d is neither divisible by 7 nor does it end with 7.\n", naturalNumber.getValue());
+
+            if (param2 != null && !isValidInput(param2)) {
+                System.out.println("The second parameter should be a natural number.");
+                continue;
+            }
+
+            long n = Long.parseLong(param1);
+
+            if (param2 != null) {
+                int count = Integer.parseInt(param2);
+                for (int i = 0 ; i < count; i++) {
+                    NaturalNumber naturalNumber = new NaturalNumber(n + i);
+                    StringBuilder output = new StringBuilder(naturalNumber.toString());
+                    output.append(" is ");
+                    output.append(naturalNumber.isBuzz() ? "buzz, " : "");
+                    output.append(naturalNumber.isDuck() ? "duck, " : "");
+                    output.append(naturalNumber.isPalindromic() ? "palindromic, " : "");
+                    output.append(naturalNumber.isGapful() ? "gapful, " : "");
+                    output.append(naturalNumber.isEven() ? "even, " : "");
+                    output.append(naturalNumber.isOdd() ? "odd, " : "");
+                    output.delete(output.length() - 2, output.length());
+                    System.out.println(output.toString());
+                }
+            } else {                
+                NaturalNumber naturalNumber = new NaturalNumber(n);
+                System.out.printf("Properties of %s\n", naturalNumber);
+                System.out.printf("        buzz: %s\n", naturalNumber.isBuzz());
+                System.out.printf("        duck: %s\n", naturalNumber.isDuck());
+                System.out.printf(" palindromic: %s\n", naturalNumber.isPalindromic());
+                System.out.printf("      gapful: %s\n", naturalNumber.isGapful());
+                System.out.printf("        even: %s\n", naturalNumber.isEven());
+                System.out.printf("         odd: %s\n", naturalNumber.isOdd());
+            }  
         }
-        scanner.close();
+        
+        System.out.println("Goodbye!");
+        
     }
 
     private boolean isValidInput(String input) {
 
-        int n = Integer.parseInt(input);
+        long n = -1;
+        try {
+            n = Long.parseLong(input);
+        } catch (NumberFormatException e) {
+            return false;
+        }        
+        
         if (n < 1) {
-            System.out.println("This number is not natural!");
             return false;
         } 
 
@@ -59,18 +94,23 @@ class Console {
 }
 
 class NaturalNumber {
-    private int value;
+    private long value;
 
-    NaturalNumber(int value) {
+    NaturalNumber(long value) {
         this.value = value;
-    }    
+    }
+
+    @Override
+    public String toString() {
+        return Long.toString(this.value);
+    }
 
     boolean isDivisibleBy7() {
         return (value % 7 == 0);
     }
 
     boolean isEndWith7() {
-        String digits = Integer.toString(value);
+        String digits = this.toString();
         if (digits.charAt(digits.length() - 1) == '7') {
             return true;
         }
@@ -86,7 +126,42 @@ class NaturalNumber {
         return (value % 2 == 0);
     }
 
-    public int getValue() {
+    boolean isOdd() {
+        return (!isEven());
+    }
+
+    boolean isDuck() {
+        return(this.toString().indexOf("0") > 0);
+    }
+
+    boolean isPalindromic() {
+        if (this.value < 10) {
+            return true;
+        }
+
+        String num = this.toString();
+        for (int i = 0, j = num.length()  - 1; i < num.length() / 2; i++, j--) {
+            if (num.charAt(i) != num.charAt(j)) return false;
+        }
+
+        return true;
+    }
+
+    boolean isGapful() {
+        String numString = this.toString();
+        if (numString.length() < 3) {
+            return false;
+        }
+
+        String gap = numString.substring(0, 1) + numString.charAt(numString.length() - 1);
+        if (this.value % Long.parseLong(gap) != 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public long getValue() {
         return value;
     }
 }
