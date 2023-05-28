@@ -32,6 +32,7 @@ class Console {
             String[] params = input.split(" ");
             String param1 = params[0];
             String param2 = params.length > 1 ? params[1] : null;
+            String param3 = params.length > 2 ? params[2] : null;
             
             if (!isValidInput(param1)) {
                 System.out.println("The first parameter should be a natural number or zero.");
@@ -41,6 +42,22 @@ class Console {
             if (param2 != null && !isValidInput(param2)) {
                 System.out.println("The second parameter should be a natural number.");
                 continue;
+            }
+
+            if (param3 != null && !isValidProperty(param3)) {
+                System.out.printf("The property [%s] is wrong.\n", param3.toUpperCase());
+                String[] properties = NaturalNumber.getProperties();
+                StringBuilder props = new StringBuilder(); 
+                props.append("Available properties: [");
+                for (int i = 0; i < properties.length; i++) {
+                    props.append(properties[i]);
+                    if (i != properties.length - 1) {
+                        props.append(", ");
+                    } else {
+                        props.append("]");                        
+                    }                    
+                }
+                System.out.println(props.toString());
             }
 
             long n = Long.parseLong(param1);
@@ -55,6 +72,7 @@ class Console {
                     output.append(naturalNumber.isDuck() ? "duck, " : "");
                     output.append(naturalNumber.isPalindromic() ? "palindromic, " : "");
                     output.append(naturalNumber.isGapful() ? "gapful, " : "");
+                    output.append(naturalNumber.isSpy() ? "spy, " : "");
                     output.append(naturalNumber.isEven() ? "even, " : "");
                     output.append(naturalNumber.isOdd() ? "odd, " : "");
                     output.delete(output.length() - 2, output.length());
@@ -67,6 +85,7 @@ class Console {
                 System.out.printf("        duck: %s\n", naturalNumber.isDuck());
                 System.out.printf(" palindromic: %s\n", naturalNumber.isPalindromic());
                 System.out.printf("      gapful: %s\n", naturalNumber.isGapful());
+                System.out.printf("         spy: %s\n", naturalNumber.isSpy());
                 System.out.printf("        even: %s\n", naturalNumber.isEven());
                 System.out.printf("         odd: %s\n", naturalNumber.isOdd());
             }  
@@ -91,10 +110,26 @@ class Console {
 
         return true;
     }
+
+    private boolean isValidProperty(String input) {
+        String[] properties = NaturalNumber.getProperties();
+        for (String prop : properties) {
+            if (input.equalsIgnoreCase(prop)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 }
 
 class NaturalNumber {
     private long value;
+
+    private static final String[] properties = {"EVEN", "ODD", "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY"};
+
 
     NaturalNumber(long value) {
         this.value = value;
@@ -161,7 +196,25 @@ class NaturalNumber {
         return true;
     }
 
-    public long getValue() {
+    long getValue() {
         return value;
+    }
+
+    static String[] getProperties() {
+        return properties;
+    }
+
+    boolean isSpy() {
+        long sum = 0;
+        long product = 1;
+
+        String[] digits = this.toString().split("");
+        for (String digit : digits) {
+            int n = Integer.parseInt(digit);
+            sum += n;
+            product *= n;
+        }
+
+        return (sum == product);
     }
 }
